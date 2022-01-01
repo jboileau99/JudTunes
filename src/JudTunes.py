@@ -4,6 +4,7 @@ Production Bot Invite Link:
 """
 
 import discord
+import asyncio
 import os
 
 from discord.ext import commands
@@ -14,6 +15,8 @@ class JudTunes(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
+        self.playlist = asyncio.Queue()
+        self.play_next_event = asyncio.Event()
 
     @commands.command()
     async def join(self, ctx):
@@ -35,49 +38,102 @@ class JudTunes(commands.Cog):
         else:
             await ctx.send("The bot is not connected to a voice channel.")
 
-    @commands.command(name='play', help='To play song')
-    async def play(self, ctx, *url):
-
+    @commands.command(name='play', help='Play or resume a song')
+    async def play(self, ctx, *track):
+        """
+        :param track: May be a series of space separated keywords for some song or a URL
+        """
         # Combine search terms
-        url = " ".join(url)
+        track = " ".join(track)
 
-        if not url:
+        if not track:
             # Try to unpause the previously playing song if no URL was given
             if ctx.voice_client and ctx.voice_client.is_paused():
                 ctx.voice_client.resume()
             else:
-                await ctx.send("No song was provided and nothing was playing before. Please provide a URL or "
+                await ctx.send("No song was provided and nothing was playing before. Enter a URL or "
                                "song title after the #play command")
         else:
-            # Try to play the song
             try:
-                async with ctx.typing():
-                    player = await YTDLSource.from_url(url, loop=bot.loop, stream=True)
-                    ctx.voice_client.play(player, after=lambda e: print(f'Player error: {e}') if e else None)
-                await ctx.send('**Now playing:** {}'.format(player.title))
+                player = await YTDLSource.from_url(track, loop=self.bot.loop, stream=True)
+                ctx.voice_client.play(player, after=lambda e: print(f'Player error: {e}') if e else None)
+                await ctx.send(f"**Now playing:** {player.title}")
+
             except Exception as e:
                 await ctx.send(f"Play error: {str(e)}")
 
-    @commands.command(name='pause', help='This command pauses the song')
+    # async def start_playing(self, vc):
+    #
+    #     while True:
+    #         self.play_next_event.clear()
+    #         print("Cleared event")
+    #         player = await self.playlist.get()
+    #         print("Got song")
+    #         vc.play(player, after=lambda e: print(f'Player error: {e}') if e else self.play_next_event.set())
+    #         # await ctx.send(f"**Now playing:** {player.title}")
+    #         await self.play_next_event.wait()
+    #         print("Event set")
+
+    # @commands.command(name='playnext', help='This command adds a song to front of the queue')
+    # async def play_next(self, ctx, *track):
+    #
+    #     # Combine search terms
+    #     track = " ".join(track)
+    #
+    #     if ctx.voice_client:
+    #
+    #         if ctx.voice_client.is_playing() or ctx.voice_client.is_paused():
+    #             self.playlist.insert(0, track)
+    #             await ctx.send(f"Playing \"{track}\" next.")
+    #         else:
+    #             await self.play_audio(ctx, track)
+    #
+    #         if ctx.voice_client.is_paused():
+    #             ctx.voice_client.resume()
+
+    @commands.command(name='pause', help='Pause a song')
     async def pause(self, ctx):
         if ctx.voice_client and ctx.voice_client.is_playing():
             ctx.voice_client.pause()
         else:
             await ctx.send("The bot is not playing anything at the moment.")
 
-    @commands.command(name='resume', help='Resumes the song')
-    async def resume(self, ctx):
-        if ctx.voice_client and ctx.voice_client.is_paused():
-            ctx.voice_client.resume()
-        else:
-            await ctx.send("The bot was not playing anything before this. Use the #play command.")
+    # @commands.command(name='resume', help='Resumes the song')
+    # async def resume(self, ctx):
+    #     if ctx.voice_client and ctx.voice_client.is_paused():
+    #         ctx.voice_client.resume()
+    #     else:
+    #         await ctx.send("The bot was not playing anything before this. Use the #play command.")
 
-    @commands.command(name='stop', help='Stops the song')
+    @commands.command(name='stop', help='Stop a song')
     async def stop(self, ctx):
         if ctx.voice_client and ctx.voice_client.is_playing():
             ctx.voice_client.stop()
         else:
             await ctx.send("The bot is not playing anything at the moment.")
+
+    # @commands.command(name="add", help="Add a song to the end of the playlist")
+    # async def add(self, ctx, *track):
+    #     # Combine search terms
+    #     track = " ".join(track)
+    #     player = await YTDLSource.from_url(track, loop=self.bot.loop, stream=True)
+    #     await self.playlist.put(player)
+    #     await ctx.send(f"**Added:** {player.title}")
+
+    # @commands.command(name="skip", help="Skips to the next song in the playlist")
+    # async def skip(self, ctx):
+    #     print(ctx.voice_client.is_playing())
+    #     if ctx.voice_client.is_playing() or ctx.voice_client.is_paused():
+    #         ctx.voice_client.stop()
+    #         await ctx.send("Track skipped.")
+    #         self.play_next_event.set()
+    #     else:
+    #         await ctx.send("Nothing playing to skip!")
+
+    # @commands.command(name="clear", help="Clears the playlist")
+    # async def clear(self, ctx):
+    #     self.playlist.clear()
+    #     await ctx.send("Tracklist cleared.")
 
     @play.before_invoke
     async def ensure_voice(self, ctx):
@@ -103,6 +159,14 @@ async def on_ready():
 
 # Use dev version if on Justin's computer
 if machine == "JUDTOP":
-    bot.run('OTI1ODgyMjg5OTc4NzU3MjAw.YczlEw.nwWeoFD_KFZNvA2riGEqX6_MjHU')
+    key = 'JudTunesKeyDev'
 else:
-    bot.run('OTI1ODc5MDgxMDg0NTUxMTc4.YcziFg.m3mwGRE3KF_zsGridMtE-rWqpUk')
+    key = 'JudTunesKey'
+
+KEY = ""
+# KEY = os.environ.get(key)
+if KEY is not None:
+    bot.run(KEY)
+else:
+    # Log error here
+    print(f"Could not run bot, no environment variable called {key}.")
