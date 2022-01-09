@@ -5,7 +5,10 @@ Production Bot Invite Link:
 
 import discord
 import asyncio
+import socket
+import sys
 import os
+
 
 from discord.ext import commands
 from YouTube import YTDLSource
@@ -147,8 +150,10 @@ class JudTunes(commands.Cog):
             ctx.voice_client.stop()
 
 
-# Initialize bot, using the dev bot key if on Justin's computer
-#machine = os.environ['COMPUTERNAME']
+# Get computer name and command line args
+machine = socket.gethostname()
+prod = len(sys.argv) > 1 and sys.argv[1] == "prod"
+
 bot = commands.Bot(command_prefix="#")
 bot.add_cog(JudTunes(bot))
 
@@ -157,14 +162,13 @@ bot.add_cog(JudTunes(bot))
 async def on_ready():
     print('Logged in as: ' + bot.user.name)
 
-# Use dev version if on Justin's computer
-#if machine == "JUDTOP":
-#    key = 'JudTunesKeyDev'
-#else:
-#    key = 'JudTunesKey'
+# Use dev or prod version of bot
+if prod:
+    key = 'JudTunesKey'
+else:
+    key = 'JudTunesKeyDev'
 
-KEY = "OTI1ODc5MDgxMDg0NTUxMTc4.YcziFg.x0mAk8kqWpuKXcG1hgI8H3bClj0"
-# KEY = os.environ.get(key)
+KEY = os.environ.get(key)
 if KEY is not None:
     bot.run(KEY)
 else:
