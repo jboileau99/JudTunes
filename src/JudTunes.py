@@ -148,7 +148,7 @@ class JudTunes(commands.Cog):
 
 
 # Initialize bot, using the dev bot key if on Justin's computer
-machine = os.environ['COMPUTERNAME']
+#machine = os.environ['COMPUTERNAME']
 bot = commands.Bot(command_prefix="#")
 bot.add_cog(JudTunes(bot))
 
@@ -158,12 +158,12 @@ async def on_ready():
     print('Logged in as: ' + bot.user.name)
 
 # Use dev version if on Justin's computer
-if machine == "JUDTOP":
-    key = 'JudTunesKeyDev'
-else:
-    key = 'JudTunesKey'
+#if machine == "JUDTOP":
+#    key = 'JudTunesKeyDev'
+#else:
+#    key = 'JudTunesKey'
 
-KEY = ""
+KEY = "OTI1ODc5MDgxMDg0NTUxMTc4.YcziFg.x0mAk8kqWpuKXcG1hgI8H3bClj0"
 # KEY = os.environ.get(key)
 if KEY is not None:
     bot.run(KEY)
