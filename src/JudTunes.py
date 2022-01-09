@@ -41,6 +41,10 @@ class JudTunes(commands.Cog):
         else:
             await ctx.send("The bot is not connected to a voice channel.")
 
+    @commands.command(name='restart', help='Restart the bot (affects all servers)')
+    async def restart(self, ctx):
+        exit(1)
+
     @commands.command(name='play', help='Play or resume a song')
     async def play(self, ctx, *track):
         """
