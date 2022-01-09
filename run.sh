@@ -1,5 +1,6 @@
+#!/bin/sh
+
 cd /root/JudTunes/src
-pwd
-ls
-exec python3 JudTunes.py
-# respawn
+while true; do
+	/usr/bin/python3 JudTunes.py prod
+done &
