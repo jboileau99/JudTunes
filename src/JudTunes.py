@@ -43,7 +43,7 @@ class JudTunes(commands.Cog):
 
     @commands.command(name='restart', help='Restart the bot (affects all servers)')
     async def restart(self, ctx):
-        exit(1)
+        sys.exit(0)
 
     @commands.command(name='play', help='Play or resume a song')
     async def play(self, ctx, *track):
